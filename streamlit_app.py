@@ -182,8 +182,16 @@ elif page == "⚖️ Fairness Analysis":
 
     st.title("⚖️ Fairness Analysis")
 
+    st.write(
+        """
+        This page examines whether model outcomes differ across demographic groups.
+        Use the selector below to review overall fairness, race-based results,
+        or sex-based results.
+        """
+    )
+
     fairness_option = st.selectbox(
-        "Select fairness results",
+        "Select fairness analysis",
         [
             "Overall Fairness",
             "Fairness by Race",
@@ -192,37 +200,87 @@ elif page == "⚖️ Fairness Analysis":
     )
 
     if fairness_option == "Overall Fairness":
-
-        df = load_csv("baseline_fairness_overall.csv")
+        fairness_df = load_csv("baseline_fairness_overall.csv")
 
     elif fairness_option == "Fairness by Race":
-
-        df = load_csv("baseline_fairness_by_race.csv")
+        fairness_df = load_csv("baseline_fairness_by_race.csv")
 
     else:
+        fairness_df = load_csv("baseline_fairness_by_sex.csv")
 
-        df = load_csv("baseline_fairness_by_sex.csv")
+    if fairness_df is not None:
 
-    if df is not None:
+        st.subheader(fairness_option)
 
         st.dataframe(
-            df,
+            fairness_df,
             use_container_width=True,
             hide_index=True
         )
 
-        numeric_columns = df.select_dtypes(include="number").columns.tolist()
+        st.markdown("---")
+
+        numeric_columns = fairness_df.select_dtypes(
+            include="number"
+        ).columns.tolist()
+
+        text_columns = fairness_df.select_dtypes(
+            exclude="number"
+        ).columns.tolist()
 
         if len(numeric_columns) > 0:
 
             selected_metric = st.selectbox(
-                "Select a fairness metric",
+                "Choose a fairness metric",
                 numeric_columns
             )
 
-            st.bar_chart(df[selected_metric])
+            if len(text_columns) > 0:
 
+                group_column = text_columns[0]
 
+                chart_df = fairness_df[
+                    [group_column, selected_metric]
+                ].copy()
+
+                chart_df = chart_df.set_index(group_column)
+
+                st.subheader(
+                    f"{selected_metric} Comparison"
+                )
+
+                st.bar_chart(chart_df)
+
+            else:
+
+                st.subheader(
+                    f"{selected_metric} Values"
+                )
+
+                st.bar_chart(
+                    fairness_df[[selected_metric]]
+                )
+
+        else:
+
+            st.warning(
+                "No numeric fairness metrics were detected in this file."
+            )
+
+        with st.expander("How to interpret fairness results"):
+
+            st.write(
+                """
+                Fairness metrics compare model behavior across demographic groups.
+
+                Large differences between groups may indicate that the model
+                does not treat all groups equally.
+
+                These results should be considered together with predictive
+                performance, dataset quality, legal requirements, and the
+                social context of criminal justice decisions.
+                """
+            )
 # =================================
 # Bias Mitigation page
 # =================================
