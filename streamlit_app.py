@@ -391,19 +391,19 @@ elif page == "🔄 Bias Mitigation":
 # =================================
 elif page == "🧠 Explainable AI":
 
-    st.title("🧠 Explainable Artificial Intelligence")
+    st.title("🧠 Explainable AI")
 
-    st.write(
-        """
-        This page displays SHAP feature importance results.
-        Higher values indicate features that have a stronger influence
-        on the model's recidivism predictions.
-        """
-    )
+    st.write("""
+    Explainable AI (XAI) helps us understand why the machine learning model
+    makes its predictions. SHAP feature importance shows which variables had
+    the greatest influence on the model's decisions.
+    """)
 
     shap_df = load_csv("shap_feature_importance.csv")
 
     if shap_df is not None:
+
+        st.subheader("SHAP Feature Importance")
 
         st.dataframe(
             shap_df,
@@ -422,16 +422,39 @@ elif page == "🧠 Explainable AI":
         if len(numeric_columns) > 0 and len(text_columns) > 0:
 
             feature_column = text_columns[0]
-            value_column = numeric_columns[0]
+            importance_column = numeric_columns[0]
 
-            chart_df = shap_df.set_index(
-                feature_column
-            )[value_column]
+            chart_df = shap_df[
+                [feature_column, importance_column]
+            ].copy()
 
-            st.subheader("Feature Importance")
+            chart_df = chart_df.sort_values(
+                by=importance_column,
+                ascending=False
+            )
+
+            chart_df = chart_df.set_index(feature_column)
+
+            st.subheader("Feature Importance Ranking")
 
             st.bar_chart(chart_df)
 
+            st.markdown("### Top 5 Most Important Features")
+
+            st.table(
+                chart_df.head(5)
+            )
+
+        with st.expander("What is SHAP?"):
+
+            st.write("""
+            SHAP (SHapley Additive exPlanations) is a method for interpreting
+            machine learning models. Higher SHAP importance values indicate
+            that a feature contributes more strongly to the model's predictions.
+
+            In criminal justice applications, explainability is important for
+            transparency, accountability, and supporting ethical decision-making.
+            """)
 
 # =================================
 # Dataset page
