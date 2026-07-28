@@ -1,21 +1,44 @@
 import streamlit as st
+import pandas as pd
+from pathlib import Path
 
-# -----------------------------
-# Page Configuration
-# -----------------------------
+
+# ---------------------------------
+# Page configuration
+# ---------------------------------
 st.set_page_config(
     page_title="Criminal Justice Recidivism Dashboard",
     page_icon="⚖️",
     layout="wide"
 )
+# ---------------------------------
+# Project paths
+# ---------------------------------
+BASE_DIR = Path(__file__).resolve().parent
+OUTPUT_DIR = BASE_DIR / "output"
 
-# -----------------------------
+
+# ---------------------------------
+# Helper function
+# ---------------------------------
+def load_csv(filename):
+    file_path = OUTPUT_DIR / filename
+
+    if file_path.exists():
+        return pd.read_csv(file_path)
+
+    st.error(f"File not found: {filename}")
+    st.code(str(file_path))
+    return None
+
+
+# ---------------------------------
 # Sidebar
-# -----------------------------
-st.sidebar.title("📌 Navigation")
+# ---------------------------------
+st.sidebar.title("⚖️ Criminal Justice")
 
 page = st.sidebar.radio(
-    "Select a Page",
+    "Select a page",
     [
         "🏠 Home",
         "📊 Model Performance",
@@ -27,52 +50,344 @@ page = st.sidebar.radio(
     ]
 )
 
-# -----------------------------
-# Home Page
-# -----------------------------
+
+# =================================
+# Home page
+# =================================
 if page == "🏠 Home":
 
     st.title("⚖️ Criminal Justice Recidivism Dashboard")
 
-    st.markdown("---")
+    st.subheader("Ethical AI, Fairness and Explainability")
 
-    st.header("Project Overview")
+    st.write(
+        """
+        This dashboard presents the results of a machine-learning project
+        for criminal justice recidivism prediction using the COMPAS dataset.
 
-    st.write("""
-This dashboard presents an Ethical Artificial Intelligence approach for predicting criminal recidivism.
+        The dashboard focuses on:
 
-The dashboard allows users to:
-
-- View machine learning model performance
-- Analyse fairness across demographic groups
-- Compare bias before and after mitigation
-- Explore Explainable AI (SHAP)
-- Review dataset information
-""")
+        - Machine-learning model performance
+        - Fairness across demographic groups
+        - Bias mitigation
+        - Explainable Artificial Intelligence
+        - Dataset characteristics
+        """
+    )
 
     st.markdown("---")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("Models", "5")
+        st.metric("Project", "Recidivism Prediction")
 
     with col2:
-        st.metric("Fairness Metrics", "8")
+        st.metric("Dataset", "COMPAS")
 
     with col3:
-        st.metric("Dataset", "COMPAS")
-        # -----------------------------
-# Model Performance Page
-# -----------------------------
+        st.metric("Focus", "Ethical AI")
+
+
+# =================================
+# Model Performance page
+# =================================
 elif page == "📊 Model Performance":
 
     st.title("📊 Model Performance")
 
-    st.markdown("### Baseline Model Results")
+    st.subheader("Baseline Model Results")
 
-    import pandas as pd
+    df = load_csv("baseline_model_results.csv")
 
-    df = pd.read_csv("output/tables/baseline_model_results.csv")
+    if df is not None:
 
-    st.dataframe(df, use_container_width=True)
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.markdown("---")
+
+        st.subheader("Model Comparison")
+
+        numeric_columns = df.select_dtypes(include="number").columns.tolist()
+
+        if len(numeric_columns) > 0:
+
+            selected_metric = st.selectbox(
+                "Select a metric",
+                numeric_columns
+            )
+
+            text_columns = df.select_dtypes(exclude="number").columns.tolist()
+
+            if len(text_columns) > 0:
+                model_column = text_columns[0]
+
+                chart_data = df.set_index(model_column)[selected_metric]
+
+                st.bar_chart(chart_data)
+
+            else:
+                st.info("No model-name column was found in the CSV file.")
+
+        else:
+            st.info("No numeric performance columns were found.")
+
+
+# =================================
+# Fairness Analysis page
+# =================================
+elif page == "⚖️ Fairness Analysis":
+
+    st.title("⚖️ Fairness Analysis")
+
+    fairness_option = st.selectbox(
+        "Select fairness results",
+        [
+            "Overall Fairness",
+            "Fairness by Race",
+            "Fairness by Sex"
+        ]
+    )
+
+    if fairness_option == "Overall Fairness":
+
+        df = load_csv("baseline_fairness_overall.csv")
+
+    elif fairness_option == "Fairness by Race":
+
+        df = load_csv("baseline_fairness_by_race.csv")
+
+    else:
+
+        df = load_csv("baseline_fairness_by_sex.csv")
+
+    if df is not None:
+
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        numeric_columns = df.select_dtypes(include="number").columns.tolist()
+
+        if len(numeric_columns) > 0:
+
+            selected_metric = st.selectbox(
+                "Select a fairness metric",
+                numeric_columns
+            )
+
+            st.bar_chart(df[selected_metric])
+
+
+# =================================
+# Bias Mitigation page
+# =================================
+elif page == "🔄 Bias Mitigation":
+
+    st.title("🔄 Bias Mitigation")
+
+    tab1, tab2 = st.tabs(
+        [
+            "Performance Comparison",
+            "Fairness Comparison"
+        ]
+    )
+
+    with tab1:
+
+        st.subheader("Performance Before and After Mitigation")
+
+        performance_df = load_csv(
+            "before_after_performance.csv"
+        )
+
+        if performance_df is not None:
+
+            st.dataframe(
+                performance_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
+            numeric_columns = performance_df.select_dtypes(
+                include="number"
+            ).columns.tolist()
+
+            if len(numeric_columns) > 0:
+
+                selected_metric = st.selectbox(
+                    "Select a performance metric",
+                    numeric_columns,
+                    key="performance_metric"
+                )
+
+                st.bar_chart(
+                    performance_df[selected_metric]
+                )
+
+    with tab2:
+
+        st.subheader("Fairness Before and After Mitigation")
+
+        fairness_df = load_csv(
+            "before_after_fairness_overall.csv"
+        )
+
+        if fairness_df is not None:
+
+            st.dataframe(
+                fairness_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
+            numeric_columns = fairness_df.select_dtypes(
+                include="number"
+            ).columns.tolist()
+
+            if len(numeric_columns) > 0:
+
+                selected_metric = st.selectbox(
+                    "Select a fairness metric",
+                    numeric_columns,
+                    key="fairness_metric"
+                )
+
+                st.bar_chart(
+                    fairness_df[selected_metric]
+                )
+
+
+# =================================
+# Explainable AI page
+# =================================
+elif page == "🧠 Explainable AI":
+
+    st.title("🧠 Explainable Artificial Intelligence")
+
+    st.write(
+        """
+        This page displays SHAP feature importance results.
+        Higher values indicate features that have a stronger influence
+        on the model's recidivism predictions.
+        """
+    )
+
+    shap_df = load_csv("shap_feature_importance.csv")
+
+    if shap_df is not None:
+
+        st.dataframe(
+            shap_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        numeric_columns = shap_df.select_dtypes(
+            include="number"
+        ).columns.tolist()
+
+        text_columns = shap_df.select_dtypes(
+            exclude="number"
+        ).columns.tolist()
+
+        if len(numeric_columns) > 0 and len(text_columns) > 0:
+
+            feature_column = text_columns[0]
+            value_column = numeric_columns[0]
+
+            chart_df = shap_df.set_index(
+                feature_column
+            )[value_column]
+
+            st.subheader("Feature Importance")
+
+            st.bar_chart(chart_df)
+
+
+# =================================
+# Dataset page
+# =================================
+elif page == "📁 Dataset":
+
+    st.title("📁 Dataset Information")
+
+    st.write(
+        """
+        The COMPAS dataset contains information used to study
+        criminal recidivism risk prediction.
+
+        This page displays the target-variable distribution.
+        """
+    )
+
+    target_df = load_csv("target_distribution.csv")
+
+    if target_df is not None:
+
+        st.dataframe(
+            target_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        numeric_columns = target_df.select_dtypes(
+            include="number"
+        ).columns.tolist()
+
+        text_columns = target_df.select_dtypes(
+            exclude="number"
+        ).columns.tolist()
+
+        if len(numeric_columns) > 0 and len(text_columns) > 0:
+
+            category_column = text_columns[0]
+            value_column = numeric_columns[0]
+
+            chart_df = target_df.set_index(
+                category_column
+            )[value_column]
+
+            st.subheader("Target Distribution")
+
+            st.bar_chart(chart_df)
+
+
+# =================================
+# About page
+# =================================
+elif page == "ℹ️ About":
+
+    st.title("ℹ️ About the Project")
+
+    st.write(
+        """
+        **Project title:** Criminal Justice Recidivism Prediction
+
+        **Area:** Ethical Artificial Intelligence
+
+        **Dataset:** COMPAS
+
+        **Main objectives:**
+
+        - Compare machine-learning models
+        - Evaluate fairness across demographic groups
+        - Apply bias-mitigation techniques
+        - Explain model predictions using SHAP
+        - Present the results through an interactive dashboard
+        """
+    )
+
+    st.warning(
+        """
+        This dashboard is intended for academic research and education.
+        Machine-learning predictions should not be used as the sole basis
+        for real criminal justice decisions.
+        """
+    )
