@@ -288,20 +288,26 @@ elif page == "🔄 Bias Mitigation":
 
     st.title("🔄 Bias Mitigation")
 
+    st.write("""
+    This page compares model performance and fairness
+    before and after applying bias mitigation techniques.
+    """)
+
     tab1, tab2 = st.tabs(
         [
-            "Performance Comparison",
-            "Fairness Comparison"
+            "📊 Performance",
+            "⚖️ Fairness"
         ]
     )
 
+    # -----------------------------
+    # Performance Comparison
+    # -----------------------------
     with tab1:
 
-        st.subheader("Performance Before and After Mitigation")
+        st.subheader("Performance Before vs After Mitigation")
 
-        performance_df = load_csv(
-            "before_after_performance.csv"
-        )
+        performance_df = load_csv("before_after_performance.csv")
 
         if performance_df is not None:
 
@@ -315,21 +321,31 @@ elif page == "🔄 Bias Mitigation":
                 include="number"
             ).columns.tolist()
 
-            if len(numeric_columns) > 0:
+            text_columns = performance_df.select_dtypes(
+                exclude="number"
+            ).columns.tolist()
 
-                selected_metric = st.selectbox(
-                    "Select a performance metric",
-                    numeric_columns,
-                    key="performance_metric"
+            if len(numeric_columns) > 0 and len(text_columns) > 0:
+
+                metric = st.selectbox(
+                    "Select performance metric",
+                    numeric_columns
                 )
 
-                st.bar_chart(
-                    performance_df[selected_metric]
-                )
+                chart_df = performance_df[
+                    [text_columns[0], metric]
+                ].copy()
 
+                chart_df = chart_df.set_index(text_columns[0])
+
+                st.bar_chart(chart_df)
+
+    # -----------------------------
+    # Fairness Comparison
+    # -----------------------------
     with tab2:
 
-        st.subheader("Fairness Before and After Mitigation")
+        st.subheader("Fairness Before vs After Mitigation")
 
         fairness_df = load_csv(
             "before_after_fairness_overall.csv"
@@ -347,19 +363,29 @@ elif page == "🔄 Bias Mitigation":
                 include="number"
             ).columns.tolist()
 
-            if len(numeric_columns) > 0:
+            text_columns = fairness_df.select_dtypes(
+                exclude="number"
+            ).columns.tolist()
 
-                selected_metric = st.selectbox(
-                    "Select a fairness metric",
+            if len(numeric_columns) > 0 and len(text_columns) > 0:
+
+                metric = st.selectbox(
+                    "Select fairness metric",
                     numeric_columns,
-                    key="fairness_metric"
+                    key="fairness"
                 )
 
-                st.bar_chart(
-                    fairness_df[selected_metric]
-                )
+                chart_df = fairness_df[
+                    [text_columns[0], metric]
+                ].copy()
 
+                chart_df = chart_df.set_index(text_columns[0])
 
+                st.bar_chart(chart_df)
+
+    st.success(
+        "Use these comparisons to evaluate whether bias mitigation improved fairness while maintaining acceptable predictive performance."
+    )
 # =================================
 # Explainable AI page
 # =================================
