@@ -62,3 +62,17 @@ The dashboard allows users to:
 
     with col3:
         st.metric("Dataset", "COMPAS")
+        # -----------------------------
+# Model Performance Page
+# -----------------------------
+elif page == "📊 Model Performance":
+
+    st.title("📊 Model Performance")
+
+    st.markdown("### Baseline Model Results")
+
+    import pandas as pd
+
+    df = pd.read_csv("output/tables/baseline_model_results.csv")
+
+    st.dataframe(df, use_container_width=True)
