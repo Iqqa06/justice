@@ -1,6 +1,11 @@
 import streamlit as st
 
-st.title("🎈 My new app")
-st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
+st.set_page_config(
+    page_title="Criminal Justice Recidivism Dashboard",
+    page_icon="⚖️",
+    layout="wide"
 )
+
+st.title("⚖️ Criminal Justice Recidivism Dashboard")
+
+st.write("Welcome to the Ethical AI Dashboard.")
