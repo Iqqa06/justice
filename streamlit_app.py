@@ -96,11 +96,15 @@ elif page == "📊 Model Performance":
 
     st.title("📊 Model Performance")
 
-    st.subheader("Baseline Model Results")
+    st.write(
+        "This page compares the predictive performance of the baseline machine-learning models."
+    )
 
     df = load_csv("baseline_model_results.csv")
 
     if df is not None:
+
+        st.subheader("Baseline Model Results")
 
         st.dataframe(
             df,
@@ -110,32 +114,66 @@ elif page == "📊 Model Performance":
 
         st.markdown("---")
 
-        st.subheader("Model Comparison")
+        numeric_columns = df.select_dtypes(
+            include="number"
+        ).columns.tolist()
 
-        numeric_columns = df.select_dtypes(include="number").columns.tolist()
+        text_columns = df.select_dtypes(
+            exclude="number"
+        ).columns.tolist()
 
         if len(numeric_columns) > 0:
 
+            metric_columns = st.columns(
+                min(4, len(numeric_columns))
+            )
+
+            for index, column_name in enumerate(
+                numeric_columns[:4]
+            ):
+
+                maximum_value = df[column_name].max()
+
+                with metric_columns[index]:
+                    st.metric(
+                        label=f"Best {column_name}",
+                        value=f"{maximum_value:.3f}"
+                    )
+
+            st.markdown("---")
+
+            st.subheader("Interactive Model Comparison")
+
             selected_metric = st.selectbox(
-                "Select a metric",
+                "Choose a performance metric",
                 numeric_columns
             )
 
-            text_columns = df.select_dtypes(exclude="number").columns.tolist()
-
             if len(text_columns) > 0:
+
                 model_column = text_columns[0]
 
-                chart_data = df.set_index(model_column)[selected_metric]
+                chart_df = df[
+                    [model_column, selected_metric]
+                ].copy()
 
-                st.bar_chart(chart_data)
+                chart_df = chart_df.set_index(
+                    model_column
+                )
+
+                st.bar_chart(chart_df)
 
             else:
-                st.info("No model-name column was found in the CSV file.")
+
+                st.warning(
+                    "A model-name column was not detected."
+                )
 
         else:
-            st.info("No numeric performance columns were found.")
 
+            st.warning(
+                "No numeric performance metrics were detected."
+            )
 
 # =================================
 # Fairness Analysis page
