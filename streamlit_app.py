@@ -32,62 +32,79 @@ def load_csv(filename):
     return None
 
 
-# ---------------------------------
-# Sidebar
-# ---------------------------------
-st.sidebar.title("⚖️ Criminal Justice")
-
-page = st.sidebar.radio(
-    "Select a page",
-    [
-        "🏠 Home",
-        "📊 Model Performance",
-        "⚖️ Fairness Analysis",
-        "🔄 Bias Mitigation",
-        "🧠 Explainable AI",
-        "📁 Dataset",
-        "ℹ️ About"
-    ]
-)
-
-
-# =================================
-# Home page
-# =================================
 if page == "🏠 Home":
 
-    st.title("⚖️ Criminal Justice Recidivism Dashboard")
+    st.title("Ethical AI for Criminal Justice")
 
-    st.subheader("Ethical AI, Fairness and Explainability")
+    st.subheader("Recidivism Prediction Dashboard")
 
-    st.write(
-        """
-        This dashboard presents the results of a machine-learning project
-        for criminal justice recidivism prediction using the COMPAS dataset.
+    st.markdown("""
+    ### MSc Dissertation Project
 
-        The dashboard focuses on:
+    This dashboard presents the results of an Ethical Artificial Intelligence
+    framework developed for predicting recidivism while evaluating fairness,
+    transparency and bias mitigation.
 
-        - Machine-learning model performance
-        - Fairness across demographic groups
-        - Bias mitigation
-        - Explainable Artificial Intelligence
-        - Dataset characteristics
-        """
-    )
+    The project investigates whether machine learning models can provide
+    accurate predictions without disproportionately disadvantaging protected
+    demographic groups.
+    """)
 
     st.markdown("---")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
-        st.metric("Project", "Recidivism Prediction")
+        st.info("""
+        **Project Objectives**
+
+        - Develop predictive machine learning models
+        - Evaluate predictive performance
+        - Assess algorithmic fairness
+        - Apply bias mitigation techniques
+        - Improve transparency using Explainable AI (SHAP)
+        """)
 
     with col2:
-        st.metric("Dataset", "COMPAS")
+        st.success("""
+        **Dashboard Sections**
 
-    with col3:
-        st.metric("Focus", "Ethical AI")
+        📊 Model Performance
 
+        ⚖️ Fairness Analysis
+
+        🔄 Bias Mitigation
+
+        🧠 Explainable AI
+
+        📁 Dataset Overview
+        """)
+
+    st.markdown("---")
+
+    st.subheader("Project Workflow")
+
+    st.markdown("""
+    1. Data preparation and preprocessing
+
+    2. Machine learning model development
+
+    3. Performance evaluation
+
+    4. Fairness assessment
+
+    5. Bias mitigation
+
+    6. Explainable AI (SHAP)
+
+    7. Ethical interpretation of results
+    """)
+
+    st.markdown("---")
+
+    st.caption(
+        "MSc Dissertation Dashboard | Ethical AI in Criminal Justice"
+    )
 
 # =================================
 # Model Performance page
